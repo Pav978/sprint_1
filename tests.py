@@ -1,95 +1,86 @@
+import pytest
 from main import BooksCollector
-import unittest
 
-class BooksCollectorTest(unittest.TestCase):
-# 1 тест "Метод добавляет новую книгу"
-    def test_add_new_book(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Буратино")
-        self.assertIn("Буратино", books_collector.get_books_genre())
 
-# 2 тест "Метод установливает жанр для книги"
-    def test_set_book_genre(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Чиполино")
-        books_collector.set_book_genre("Чиполино", "Фантастика")
-        self.assertEqual(books_collector.get_book_genre("Чиполино"), "Фантастика")
-# 3 тест "Метод выводит жанр книги по ее имени"
+@pytest.fixture
+def collector():
+    return BooksCollector()
 
-    def test_get_book_genre(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Образец")
-        books_collector.set_book_genre("Образец", "Фантастика")
-        self.assertEqual(books_collector.get_book_genre("Образец"), "Фантастика")
+class TestBooksCollector:
+# тест № 1- добавление 2-х новых книг
+    def test_add_new_book_add_two_books(self, collector):
+        collector.add_new_book('Гордость и предубеждение и зомби')
+        collector.add_new_book('Что делать, если ваш кот хочет вас убить')
+        assert len(collector.get_books_rating()) == 2
 
-# 4 тест "Метод выводит список книг с опредленным жанром"
-    def test_get_books_with_specific_genre(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Звездные войны")
-        books_collector.add_new_book("Чужой")
-        books_collector.set_book_genre("Звездные войны", "Фантастика")
-        books_collector.set_book_genre("Чужой", "Ужасы")
-        self.assertEqual(books_collector.get_books_with_specific_genre("Фантастика"), ["Звездные войны"])
-        self.assertEqual(books_collector.get_books_with_specific_genre("Ужасы"), ["Чужой"])
+# тест №2 - добавление новой книги
+    def test_add_new_book(self, collector):
+        collector.add_new_book("Буратино")
+        assert "Буратино" in collector.get_books_genre()
+# тест №3 - установление жанра книги, если книга есть в books_genre ее жанр входи в список genre
+    def test_set_book_genre(self, collector):
+        collector.add_new_book("Чиполино")
+        collector.set_book_genre("Чиполино", "Фантастика")
+        assert collector.get_book_genre("Чиполино") == "Фантастика"
+# тест №4 - вывод жанра книги по ее названию
+    def test_get_book_genre(self, collector):
+        collector.add_new_book("Образец")
+        collector.set_book_genre("Образец", "Фантастика")
+        assert collector.get_book_genre("Образец") == "Фантастика"
+# тест №5 - вывод списка книг с опредленным жанром
+    def test_get_books_with_specific_genre(self, collector):
+        collector.add_new_book("Звездные войны")
+        collector.add_new_book("Чужой")
+        collector.set_book_genre("Звездные войны", "Фантастика")
+        collector.set_book_genre("Чужой", "Ужасы")
+        assert collector.get_books_with_specific_genre("Фантастика") == ["Звездные войны"]
+        assert collector.get_books_with_specific_genre("Ужасы") == ["Чужой"]
+# тест №6 - вывод текущего словаря books_genre
+    def test_get_books_genre(self, collector):
+        collector.add_new_book("Тайна 3 планеты")
+        collector.add_new_book("Кошмар")
+        collector.set_book_genre("Тайна 3 планеты", "Фантастика")
+        collector.set_book_genre("Кошмар", "Ужасы")
+        assert collector.get_books_genre() == {"Тайна 3 планеты": "Фантастика", "Кошмар": "Ужасы"}
+# тест №7 - возврат книг, которые подходят детям
+    def test_get_books_for_children(self, collector):
+        collector.add_new_book("Гостья из будущего")
+        collector.add_new_book("Дети кукурузы")
+        collector.set_book_genre("Гостья из будущего", "Фантастика")
+        collector.set_book_genre("Дети кукурузы", "Ужасы")
+        assert collector.get_books_for_children() == ["Гостья из будущего"]
+# тест №8 - добавление книги в список избранных
+    def test_add_book_in_favorites(self, collector):
+        collector.add_new_book("Любимая книга")
+        collector.add_book_in_favorites("Любимая книга")
+        assert "Любимая книга" in collector.get_list_of_favorites_books()
+# тест №9 - удаление книги из списка избарнных
+    def test_delete_book_from_favorites(self, collector):
+        collector.add_new_book("Уже не любимая книга")
+        collector.add_book_in_favorites("Уже не любимая книга")
+        collector.delete_book_from_favorites("Уже не любимая книга")
+        assert "Уже не любимая книга" not in collector.get_list_of_favorites_books()
+# тест №10 - вывод списка избранных книг
+    def test_get_list_of_favorites_books(self, collector):
+        collector.add_new_book("Хорошая книга")
+        collector.add_new_book("Лучшая книга")
+        collector.add_book_in_favorites("Хорошая книга")
+        collector.add_book_in_favorites("Лучшая книга")
+        assert collector.get_list_of_favorites_books() == ["Хорошая книга", "Лучшая книга"]
 
-# 5 тест "Метод выводит текущий словарь books_genre"
-    def test_get_books_genre(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Тайна 3 планеты")
-        books_collector.add_new_book("Кошмар")
-        books_collector.set_book_genre("Тайна 3 планеты", "Фантастика")
-        books_collector.set_book_genre("Кошмар", "Ужасы")
-        self.assertEqual(books_collector.get_books_genre(), {"Тайна 3 планеты": "Фантастика", "Кошмар": "Ужасы"})
-
-# 6 тест "Метод возвращает книги, которые подходят детям"
-    def test_get_books_for_children(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Гостья из будущего")
-        books_collector.add_new_book("Дети кукурузы")
-        books_collector.set_book_genre("Гостья из будущего", "Фантастика")
-        books_collector.set_book_genre("Дети кукурузы", "Ужасы")
-        self.assertEqual(books_collector.get_books_for_children(), ["Гостья из будущего"])
-# 7 тест "Метод добавляет книгу в избранное"
-    def test_add_book_in_favorites(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Любимая книга")
-        books_collector.add_book_in_favorites("Любимая книга")
-        self.assertIn("Любимая книга", books_collector.get_list_of_favorites_books())
-
-# 8 тест "Метод удаляет книгу из избранного"
-    def test_delete_book_from_favorites(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Уже не любимая книга")
-        books_collector.add_book_in_favorites("Уже не любимая книга")
-        books_collector.delete_book_from_favorites("Уже не любимая книга")
-        self.assertNotIn("Уже не любимая книга", books_collector.get_list_of_favorites_books())
-
-# 9 тест "Метод выводит список избранных книг"
-    def test_get_list_of_favorites_books(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Хорошая книга")
-        books_collector.add_new_book("Лучшая книга")
-        books_collector.add_book_in_favorites("Хорошая книга")
-        books_collector.add_book_in_favorites("Лучшая книга")
-        self.assertEqual(books_collector.get_list_of_favorites_books(), ["Хорошая книга", "Лучшая книга"])
-
-    # негативные тесты
-
-# 10 тест проверка пустого названия книги
-    def test_add_new_book_with_empty_name(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("")
-        self.assertNotIn("", books_collector.get_books_genre())
-
-# 11 тест проверка длинного названия книги
-    def test_add_new_book_with_long_name(self):
-        books_collector = BooksCollector()
-        long_name = "К" * 41
-        self.assertNotIn(long_name, books_collector.get_books_genre())
-
-# 12 тест проверка несуществующего жанра
-    def test_set_book_genre_with_incorrect_genre(self):
-        books_collector = BooksCollector()
-        books_collector.add_new_book("Каламбур")
-        books_collector.set_book_genre("Калабур", "Несуществующий жанр")
-        self.assertEqual(books_collector.get_book_genre("Каламбур"), None)
+    # Негативные тесты
+# тест №11 - добавление пустого ввода в названии книги
+    def test_add_new_book_with_empty_name(self, collector):
+        collector.add_new_book("")
+        assert "" not in collector.get_books_genre()
+# тест №12 - добавление книги в названии которого 41 символ
+# тест №13 - добавление книги в названии которого 40 символов
+    @pytest.mark.parametrize('name', ['Ллллллллллллллллллллллллллллллллллллллллл', 'ьььььььььььььььььььььььььььььььььььььььь'])
+    def test_add_new_book_length_name(self, collector, name):
+        collector.add_new_book(name)
+        assert collector.get_book_genre(name) is None
+# тест №14 - установление не существующего жанра для книги
+    def test_set_book_genre_with_incorrect_genre(self, collector):
+        collector.add_new_book("Книга 1")
+        collector.set_book_genre("Книга 1", "Жанр")
+        assert collector.get_book_genre("Книга 1") is not None
